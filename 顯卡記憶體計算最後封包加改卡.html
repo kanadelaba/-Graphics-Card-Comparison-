@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <title>顯卡硬體低標計算機 7.4</title>
+    <style>
+        body { font-family: 'Segoe UI', 'Microsoft JhengHei', sans-serif; background: #0d1117; color: #c9d1d9; padding: 20px; }
+        .container { max-width: 900px; margin: auto; display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .card { background: #161b22; padding: 25px; border-radius: 15px; border: 1px solid #30363d; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        .full-width { grid-column: 1 / -1; }
+        h2, h3 { color: #58a6ff; margin-top: 0; border-bottom: 1px solid #30363d; padding-bottom: 10px; }
+        .input-group { margin-bottom: 15px; }
+        label { display: block; font-size: 0.85rem; margin-bottom: 5px; color: #8b949e; }
+        input, select { width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #30363d; background: #010409; color: #f0f6fc; box-sizing: border-box; }
+        .result-panel { background: #010409; padding: 30px; border-radius: 15px; text-align: center; border: 2px solid #30363d; display: flex; flex-direction: column; justify-content: center; }
+        .cp-value { font-size: 5rem; font-weight: 800; margin: 10px 0; }
+        .molecular-val { font-size: 1.2rem; color: #d2a8ff; font-family: monospace; }
+        .warning { background: #3e1f1f; color: #ff7b72; padding: 12px; border-radius: 6px; display: none; margin-top: 15px; font-size: 0.9rem; border: 1px solid #ff7b72; }
+        .info-text { font-size: 0.8rem; color: #8b949e; line-height: 1.5; margin-top: 10px; }
+        .preset-select { background: #1f2937; border-color: #58a6ff; font-weight: bold; }
+        .formula-box { margin-top: 20px; padding: 15px; background: rgba(88, 166, 255, 0.05); border-radius: 10px; border: 1px dashed #30363d; }
+        .formula-text { font-family: 'Courier New', monospace; color: #8b949e; font-size: 0.95rem; line-height: 1.6; }
+        .formula-highlight { color: #d2a8ff; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+<h2 style="text-align:center;">顯卡硬體低標計算機 7.4</h2>
+
+<div class="container">
+    <div class="card">
+        <h3>Step 1: 顯卡硬體規格</h3>
+        <div class="input-group">
+            <label style="color: #58a6ff;">快速載入官方/常用範本</label>
+            <select class="preset-select" id="gpu-preset" onchange="loadPreset()">
+                <option value="custom">-- 手動輸入特殊規格 --</option>
+                <option value="32,512,1.55,1.48,102990">RTX 5090 (32G/512b/G7)</option>
+                <option value="22,352,1.00,1.30,14500">RTX 2080 Ti 22G 改裝版 (魔改神卡)</option>
+                <option value="16,256,1.55,1.22,41000">RTX 5080 (16G/256b/G7)</option>
+                <option value="16,256,1.28,1.22,32900">RTX 4080 Super (16G/256b/G6X)</option>
+                <option value="16,256,1.55,1.22,31990" selected>RTX 5070 Ti (16G/256b/G7)</option>
+                <option value="12,192,1.55,1.08,19990">RTX 5070 (12G/192b/G7)</option>
+                <option value="8,128,1.28,0.82,12960">RTX 4060 Ti (8G/128b/G6X)</option>
+            </select>
+        </div>
+        <hr style="border: 0.5px solid #333; margin-bottom: 15px;">
+        <div class="input-group"><label>顯存容量 (GB)</label><input type="number" id="vram" value="16" oninput="calculate()"></div>
+        <div class="input-group"><label>位寬 (Bit)</label><input type="number" id="bit" value="256" oninput="calculate()"></div>
+        <div class="input-group">
+            <label>速度係數</label>
+            <select id="speed" onchange="calculate()">
+                <option value="1.55">GDDR7 (1.55)</option>
+                <option value="1.28">GDDR6X (1.28)</option>
+                <option value="1.00">GDDR6 (1.00)</option>
+                <option value="0.75">GDDR5 (0.75)</option>
+            </select>
+        </div>
+        <div class="input-group">
+            <label>穩定度加成 (通道/位寬權重)</label>
+            <select id="stability" onchange="calculate()">
+                <option value="1.48">512-bit 極致 (1.48)</option>
+                <option value="1.35">384-bit 旗艦 (1.35)</option>
+                <option value="1.30">352-bit 經典 (1.30)</option>
+                <option value="1.22" selected>256-bit 以上 (1.22)</option>
+                <option value="1.08">192-bit (1.08)</option>
+                <option value="0.82">128-bit (0.82)</option>
+            </select>
+        </div>
+        <div style="padding-top:10px; border-top:1px solid #333;">
+            <label>計算出的實力分子：</label>
+            <div class="molecular-val" id="mol-display">7745.5</div>
+        </div>
+    </div>
+
+    <div class="card">
+        <h3>Step 2: 環境壓力與價格</h3>
+        <div class="input-group">
+            <label>顯卡購入價格 (TWD)</label>
+            <input type="number" id="price" value="31990" oninput="calculate()">
+        </div>
+        <div class="input-group">
+            <label>主螢幕解析度</label>
+            <select id="res-a" onchange="handleEnvChange()">
+                <option value="4.0">4K (2160p)</option>
+                <option value="1.77">2K (1440p)</option>
+                <option value="1.0" selected>1080p</option>
+            </select>
+        </div>
+        <div class="input-group">
+            <label>副螢幕解析度</label>
+            <select id="res-b" onchange="handleEnvChange()">
+                <option value="4.0">4K (2160p)</option>
+                <option value="1.77">2K (1440p)</option>
+                <option value="1.0">1080p</option>
+                <option value="0" selected>無</option>
+            </select>
+        </div>
+        <div class="input-group">
+            <label>同步壓力 (Sync Factor)</label>
+            <select id="h-factor" onchange="calculate()">
+                <option value="1.37">不同解析度 + 不同幀數 (1.37)</option>
+                <option value="1.22">僅解析度不同 (1.22)</option>
+                <option value="1.15">僅不同幀率 (1.15)</option>
+                <option value="1.00" selected>完全同步 (1.00)</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="card full-width result-panel">
+        <div style="font-size: 1.1rem;">最終硬體低標 CP 值</div>
+        <div class="cp-value" id="cp-display">0.00</div>
+        <div id="status-tag" style="font-weight:bold; font-size:1.3rem;"></div>
+        <div id="vram-warning" class="warning">⚠️ 物理顯存低於該環境需求門檻</div>
+        
+        <div class="formula-box">
+            <div class="formula-text" id="formula-display">計算式載入中...</div>
+        </div>
+
+        <div class="info-text">
+            標準：<span style="color:#3fb950"> > 10.00</span> 優質 | 
+            <span style="color:#d29922">5.00 ~ 10.00</span> 安全 | 
+            <span style="color:#f85149"> < 5.00</span> 不合格
+        </div>
+    </div>
+</div>
+
+<script>
+function handleEnvChange() {
+    const resA = document.getElementById('res-a').value;
+    const resB = document.getElementById('res-b').value;
+    const hFactorSelect = document.getElementById('h-factor');
+    if (resB === "0") {
+        hFactorSelect.value = "1.00";
+    } else if (resA !== resB) {
+        hFactorSelect.value = "1.37";
+    } else {
+        hFactorSelect.value = "1.15";
+    }
+    calculate();
+}
+
+function loadPreset() {
+    const preset = document.getElementById('gpu-preset').value;
+    if (preset === 'custom') return;
+    const [vram, bit, speed, stability, price] = preset.split(',');
+    document.getElementById('vram').value = vram;
+    document.getElementById('bit').value = bit;
+    document.getElementById('speed').value = speed;
+    document.getElementById('stability').value = stability;
+    document.getElementById('price').value = price;
+    calculate();
+}
+
+function calculate() {
+    const vram = parseFloat(document.getElementById('vram').value) || 0;
+    const bit = parseFloat(document.getElementById('bit').value) || 0;
+    const speed = parseFloat(document.getElementById('speed').value);
+    const stability = parseFloat(document.getElementById('stability').value);
+    const molecular = vram * bit * speed * stability;
+    document.getElementById('mol-display').innerText = molecular.toFixed(1);
+
+    const rawPrice = parseFloat(document.getElementById('price').value) || 1;
+    const priceTenThousand = (rawPrice / 10000).toFixed(2);
+
+    const resA = parseFloat(document.getElementById('res-a').value);
+    const resB = parseFloat(document.getElementById('res-b').value);
+    const hFactor = parseFloat(document.getElementById('h-factor').value);
+    const totalRes = (resA + (resB * 0.3)).toFixed(2);
+
+    let penaltyBonus = 1.0;
+    let warningText = "";
+
+    if (resA >= 4.0) {
+        if (vram >= 32) penaltyBonus = 1.75;
+        else if (vram >= 24) penaltyBonus = 1.62;
+        else if (vram >= 20) penaltyBonus = 1.48;
+        else if (vram >= 16) penaltyBonus = 1.25; 
+        else {
+            penaltyBonus = 0.5;
+            warningText = `⚠️ 4K 顯存危急：顯存低於 16GB，性能重罰 0.5x！`;
+        }
+    } 
+    else if (resA >= 1.77) {
+        if (vram < 12) {
+            penaltyBonus = 0.5;
+            warningText = `⚠️ 規格紅線：2K 環境顯存嚴重不足，性能打 5 折！`;
+        } else if (vram < 14) {
+            penaltyBonus = 0.7;
+            warningText = `⚠️ 規格警告：2K 環境顯存略低，性能打 7 折！`;
+        }
+    } 
+    else if (resA >= 1.0 && vram < 8) {
+        penaltyBonus = 0.5;
+        warningText = `⚠️ 規格警告：1080p 顯存建議至少 8GB，性能打 5 折！`;
+    }
+
+    const warningEl = document.getElementById('vram-warning');
+    if (warningText !== "") {
+        warningEl.style.display = 'block';
+        warningEl.innerText = warningText;
+    } else {
+        warningEl.style.display = 'none';
+    }
+
+    const cp = (molecular / (priceTenThousand * totalRes * hFactor)) * penaltyBonus / 100;
+    
+    document.getElementById('cp-display').innerText = cp.toFixed(2);
+    document.getElementById('formula-display').innerHTML = `
+        算式：(<span class="formula-highlight">${molecular.toFixed(1)}</span>) / 
+        (價格 <span class="formula-highlight">${priceTenThousand}萬</span> × 
+        壓力 <span class="formula-highlight">${totalRes}</span> × 
+        同步 <span class="formula-highlight">${hFactor}</span>) 
+        ${penaltyBonus !== 1 ? `× 係數 <span style="color:${penaltyBonus < 1 ? '#ff7b72' : '#76ff7a'}">${penaltyBonus}</span>` : ''} 
+        / 100 = <span class="formula-highlight" style="color:#58a6ff">${cp.toFixed(2)}</span>
+    `;
+
+    const cpDisplay = document.getElementById('cp-display');
+    const statusTag = document.getElementById('status-tag');
+    if (cp >= 10) {
+        cpDisplay.style.color = "#3fb950";
+        statusTag.innerText = "評定結果：優質配置(僅限cp值頗高對標效能全開)";
+    } else if (cp >= 5) {
+        cpDisplay.style.color = "#C8E671";
+        statusTag.innerText = "評定結果：安全配置(僅限cp值適中對標效能全開)";
+    } else {
+        cpDisplay.style.color = "#f85149";
+        statusTag.innerText = "評定結果：不合格(僅限cp值最低對標效能全開)";
+    }
+}
+calculate();
+</script>
+</body>
+</html>
+
