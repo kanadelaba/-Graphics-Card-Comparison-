@@ -1,4 +1,4 @@
-# -Graphics-Card-Comparison-
+# -顯卡對比Graphics-Card-Comparison-
 作用於對cp值的主要提示，專用於新台幣，轉換幣值時請轉新台幣(This is the main prompt for CP value, specifically for New Taiwan Dollars (NTD). Please convert to New Taiwan Dollars when changing currency.)如有看不懂的地方請使用翻譯(Please use a translator if you encounter any parts you don't understand.)
 
 中文說明：
